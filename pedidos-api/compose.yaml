@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=pedidos
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+
+## Iniciar docker desktop e subir contêiner
+# systemctl --user start docker-desktop
+# docker compose up -d
+
+## Fazer build
+# docker compose build
+# docker compose build --no-cache
+
+## Se a docker engine não iniciar então executar os seguintes comandos e depois novamente os passos anteriores para iniciar:
+# systemctl --user stop docker-desktop
+# rm -rf ~/.docker/desktop
+
