@@ -1,7 +1,6 @@
 package com.maicosmaniotto.pedidos_api.model;
 
 import com.maicosmaniotto.pedidos_api.enums.UnidadeFederativa;
-import com.maicosmaniotto.pedidos_api.enums.converters.TipoPessoaConverter;
 import com.maicosmaniotto.pedidos_api.enums.converters.UnidadeFederativaConverter;
 
 import jakarta.persistence.Column;
@@ -15,9 +14,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "municipios")
 public class Municipio {
@@ -35,7 +36,6 @@ public class Municipio {
     private String codigoIbge;
 
     @NotNull
-    @NotBlank
     @Convert(converter = UnidadeFederativaConverter.class)
     @Column(name = "uf", length = 2, nullable = false)
     private UnidadeFederativa uf;

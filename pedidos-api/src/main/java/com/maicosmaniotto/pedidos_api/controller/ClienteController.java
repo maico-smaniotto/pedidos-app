@@ -37,33 +37,33 @@ public class ClienteController {
 	}
 
 	@GetMapping
-    public PageDTO<ClienteResponse> list(
+    public PageDTO<ClienteResponse> listar(
         @RequestParam(defaultValue = "0")  @PositiveOrZero    int page, 
         @RequestParam(defaultValue = "10") @Positive @Max(50) int pageSize
     ) {
-        return clienteService.list(page, pageSize);
+        return clienteService.listar(page, pageSize);
     }
 
     @GetMapping("/{id}")
-    public ClienteResponse findById(@PathVariable @NotNull @Positive Long id) {
-        return clienteService.findById(id);
+    public ClienteResponse buscarPorId(@PathVariable @NotNull @Positive Long id) {
+        return clienteService.buscarPorId(id);
     }
 
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
-    public ClienteResponse create(@RequestBody @Valid @NotNull ClienteRequest clienteRequest) {
-        return clienteService.create(clienteRequest);
+    public ClienteResponse criar(@RequestBody @Valid @NotNull ClienteRequest clienteRequest) {
+        return clienteService.criar(clienteRequest);
     }
 
     @PutMapping("/{id}")
-    public ClienteResponse update(@PathVariable @NotNull @Positive Long id, @RequestBody @Valid @NotNull ClienteRequest clienteRequest) {
-        return clienteService.update(id, clienteRequest);
+    public ClienteResponse atualizar(@PathVariable @NotNull @Positive Long id, @RequestBody @Valid @NotNull ClienteRequest clienteRequest) {
+        return clienteService.atualizar(id, clienteRequest);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable @NotNull @Positive Long id) {
-        clienteService.delete(id);
+    public void excluir(@PathVariable @NotNull @Positive Long id) {
+        clienteService.excluir(id);
     }
     
 }

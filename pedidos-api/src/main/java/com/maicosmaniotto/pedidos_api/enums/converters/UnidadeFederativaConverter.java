@@ -24,7 +24,7 @@ public class UnidadeFederativaConverter implements AttributeConverter<UnidadeFed
             return null;
         }
         return Stream.of(UnidadeFederativa.values())        
-            .filter(c -> c.getValor() == value)
+            .filter(c -> c.getValor().equals(value))
             .findFirst()
             .orElseThrow(IllegalArgumentException::new);
     }

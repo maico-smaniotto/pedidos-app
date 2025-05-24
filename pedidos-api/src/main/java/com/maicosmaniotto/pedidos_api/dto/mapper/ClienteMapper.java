@@ -8,8 +8,11 @@ import com.maicosmaniotto.pedidos_api.dto.ClienteRequest;
 import com.maicosmaniotto.pedidos_api.dto.ClienteResponse;
 import com.maicosmaniotto.pedidos_api.dto.ClienteEnderecoDTO;
 import com.maicosmaniotto.pedidos_api.enums.converters.TipoPessoaConverter;
+import com.maicosmaniotto.pedidos_api.enums.converters.UnidadeFederativaConverter;
 import com.maicosmaniotto.pedidos_api.enums.converters.StatusRegistroConverter;
 import com.maicosmaniotto.pedidos_api.model.Cliente;
+import com.maicosmaniotto.pedidos_api.model.ClienteEndereco;
+import com.maicosmaniotto.pedidos_api.model.Municipio;
 
 @Component
 public class ClienteMapper {
@@ -54,30 +57,43 @@ public class ClienteMapper {
         }
         
         Cliente cliente = new Cliente();
-        
-        // if (clienteRequest.id() != null) {
-        //     cliente.setId(clienteRequest.id());
-        // }        
-        
+    
         cliente.setTipoPessoa(TipoPessoaConverter.stringToEntityAttribute(clienteRequest.tipoPessoa()));        
+        cliente.setCpfCnpj(clienteRequest.cpfCnpj());
         cliente.setRazaoSocial(clienteRequest.razaoSocial());
         cliente.setNomeFantasia(clienteRequest.nomeFantasia());
-        
+        cliente.setEmail(clienteRequest.email());
+
+        cliente.getEnderecos().clear();
+        clienteRequest.enderecos().stream().forEach(enderecoRequest -> {
+            var endereco = new ClienteEndereco();
+            endereco.setId(enderecoRequest.id());
+            endereco.setLogradouro(enderecoRequest.logradouro());
+            endereco.setNumero(enderecoRequest.numero());
+            endereco.setComplemento(enderecoRequest.complemento());
+            endereco.setBairro(enderecoRequest.bairro());
+            endereco.setCodigoPostal(enderecoRequest.codigoPostal());
+
+            Municipio municipio = new Municipio();
+            municipio.setId(enderecoRequest.municipioId());
+            municipio.setNome(enderecoRequest.municipioNome());
+            municipio.setCodigoIbge(enderecoRequest.municipioCodigoIbge());
+            
+            municipio.setUf(
+                new UnidadeFederativaConverter()
+                    .convertToEntityAttribute(enderecoRequest.uf())
+            );
+
+            endereco.setMunicipio(municipio);
+
+            endereco.setCliente(cliente);
+
+            cliente.getEnderecos().add(endereco);
+        });
         
         if (clienteRequest.statusRegistro() != null) {
             cliente.setStatusRegistro(StatusRegistroConverter.stringToEntityAttribute(clienteRequest.statusRegistro()));
         }
-
-        // cliente.getEnderecos().clear();
-        // clienteRequest.enderecos().stream().forEach(enderecoRequest -> {
-        //     var endereco = new ClienteEndereco();
-        //     endereco.setId(enderecoRequest.id());
-        //     lesson.setTitle(enderecoRequest.title());
-        //     lesson.setVideoCode(enderecoRequest.videoCode());
-        //     lesson.setCliente(cliente);
-
-        //     cliente.getEderecos().add(endereco);
-        // });
         
         return cliente;
     }

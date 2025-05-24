@@ -15,8 +15,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record ClienteRequest(
-    // @JsonProperty("_id")    
-    // Long id, 
 
     @NotNull
     @NotBlank(message = "tipo de pessoa é obrigatório")

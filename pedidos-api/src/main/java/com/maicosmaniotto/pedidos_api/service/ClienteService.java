@@ -35,7 +35,7 @@ public class ClienteService {
         this.clienteMapper = clienteMapper;
     }
 
-    public PageDTO<ClienteResponse> list(
+    public PageDTO<ClienteResponse> listar(
         @PositiveOrZero    int pageNumber, 
         @Positive @Max(50) int pageSize
     ) {
@@ -44,16 +44,16 @@ public class ClienteService {
         return new PageDTO<>(clientes, page.getTotalElements(), page.getTotalPages(), page.getSize(), page.getNumber());
     }
 
-    public ClienteResponse findById(@NotNull @Positive Long id) {
+    public ClienteResponse buscarPorId(@NotNull @Positive Long id) {
         return clienteRepository.findById(id).map(clienteMapper::toResponse)
             .orElseThrow(() -> new RegistroNaoEncontradoException(id));
     }
 
-    public ClienteResponse create(@Valid @NotNull ClienteRequest clienteRequest) {
+    public ClienteResponse criar(@Valid @NotNull ClienteRequest clienteRequest) {
         return clienteMapper.toResponse(clienteRepository.save(clienteMapper.toEntity(clienteRequest)));
     }
 
-    public ClienteResponse update(@NotNull @Positive Long id, @Valid @NotNull ClienteRequest clienteRequest) {
+    public ClienteResponse atualizar(@NotNull @Positive Long id, @Valid @NotNull ClienteRequest clienteRequest) {
         return clienteRepository.findById(id)
             .map(found -> {
                 found.setTipoPessoa(TipoPessoaConverter.stringToEntityAttribute(clienteRequest.tipoPessoa()));
@@ -72,7 +72,7 @@ public class ClienteService {
             }).orElseThrow(() -> new RegistroNaoEncontradoException(id));
     }
 
-    public void delete(@NotNull @Positive Long id) {
+    public void excluir(@NotNull @Positive Long id) {
         clienteRepository.delete(
             clienteRepository.findById(id)
             .orElseThrow(() -> new RegistroNaoEncontradoException(id))
