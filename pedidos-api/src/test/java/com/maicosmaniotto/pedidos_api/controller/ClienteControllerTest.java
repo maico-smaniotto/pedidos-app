@@ -42,6 +42,7 @@ import com.maicosmaniotto.pedidos_api.dto.PageDTO;
 import com.maicosmaniotto.pedidos_api.dto.mapper.ClienteMapper;
 import com.maicosmaniotto.pedidos_api.exception.RegistroNaoEncontradoException;
 import com.maicosmaniotto.pedidos_api.model.Cliente;
+import com.maicosmaniotto.pedidos_api.model.Municipio;
 import com.maicosmaniotto.pedidos_api.service.ClienteService;
 
 import jakarta.servlet.ServletException;
@@ -71,8 +72,9 @@ class ClienteControllerTest {
 
     @Test
     @DisplayName("Deve retornar uma lista de clientes em formato JSON")
-    void testeListar() throws Exception {
-        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1");
+    void testeListar() throws Exception {        
+        Municipio municipio = ClienteDadosTeste.criarMunicipioValido();
+        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1", municipio);
         ClienteResponse clienteResponse = clienteMapper.toResponse(cliente);
         List<ClienteResponse> clientes = List.of(clienteResponse);
         PageDTO<ClienteResponse> page = new PageDTO<>(clientes, 1, 1, 1, 0);
@@ -98,7 +100,8 @@ class ClienteControllerTest {
     @Test
     @DisplayName("Deve retornar um cliente pelo id em formato JSON")
     void testeBuscarPorId() throws Exception {
-        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1");
+        Municipio municipio = ClienteDadosTeste.criarMunicipioValido();
+        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1", municipio);
         cliente.setId(1L);
         ClienteResponse clienteResponse = clienteMapper.toResponse(cliente);
 
@@ -147,14 +150,14 @@ class ClienteControllerTest {
     @DisplayName("Deve criar um novo cliente")
     void testeCriar() throws Exception {
         
-        ClienteRequest clienteRequest = ClienteDadosTeste.criarClienteRequestValidoComUmEndereco("Cliente 1");
+        ClienteRequest clienteRequest = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco("Cliente 1");
         Cliente cliente = clienteMapper.toEntity(clienteRequest);
         cliente.setId(1L);
         ClienteResponse clienteResponse = clienteMapper.toResponse(cliente);
 
         when(clienteService.criar(clienteRequest)).thenReturn(clienteResponse);
 
-        var contentJson = new ObjectMapper().writeValueAsString(clienteResponse);
+        var contentJson = new ObjectMapper().writeValueAsString(clienteRequest);
         var requestBuilder = MockMvcRequestBuilders.post(API)
             .contentType(MediaType.APPLICATION_JSON)
             .content(contentJson);
@@ -176,11 +179,12 @@ class ClienteControllerTest {
         List<ClienteResponse> clientes = new ArrayList<>();
         Cliente cliente;
 
-        cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1");
+        Municipio municipio = ClienteDadosTeste.criarMunicipioValido();
+        cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1", municipio);
         cliente.setRazaoSocial("");
         clientes.add(clienteMapper.toResponse(cliente));
 
-        cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 2");
+        cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 2", municipio);
         cliente.getEnderecos().clear();
         clientes.add(clienteMapper.toResponse(cliente));
         
@@ -199,13 +203,16 @@ class ClienteControllerTest {
     @Test
     @DisplayName("Deve atualizar um cliente")
     void testeAtualizar() throws Exception {
-        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1");
+        ClienteRequest clienteRequest = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco("Cliente 1");
+        
+        Municipio municipio = ClienteDadosTeste.criarMunicipioValido();
+        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1", municipio);
         cliente.setId(1L);
         ClienteResponse clienteResponse = clienteMapper.toResponse(cliente);
 
         when(clienteService.atualizar(anyLong(), any())).thenReturn(clienteResponse);
 
-        var contentJson = new ObjectMapper().writeValueAsString(clienteResponse);
+        var contentJson = new ObjectMapper().writeValueAsString(clienteRequest);
         var requestBuilder = MockMvcRequestBuilders.put(API_ID, cliente.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(contentJson);
@@ -224,14 +231,12 @@ class ClienteControllerTest {
     @Test
     @DisplayName("Deve lançar RegistroNaoEncontradoException ao tentar atualizar um cliente que não existe")
     void testeAtualizarNaoEncontrado() throws Exception {
-        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1");
-        cliente.setId(1L);
-        ClienteResponse clienteResponse = clienteMapper.toResponse(cliente);
+        ClienteRequest clienteRequest = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco("Cliente 1");
 
         when(clienteService.atualizar(anyLong(), any())).thenThrow(RegistroNaoEncontradoException.class);
 
-        var contentJson = new ObjectMapper().writeValueAsString(clienteResponse);
-        var requestBuilder = MockMvcRequestBuilders.put(API_ID, cliente.getId())
+        var contentJson = new ObjectMapper().writeValueAsString(clienteRequest);
+        var requestBuilder = MockMvcRequestBuilders.put(API_ID, 1L)
             .contentType(MediaType.APPLICATION_JSON)
             .content(contentJson);
         assertThrows(ServletException.class, () -> {
@@ -245,18 +250,17 @@ class ClienteControllerTest {
     @Test
     @DisplayName("Deve retornar bad request ao tentar atualizar um cliente com dados inválidos")
     void testeAtualizarDadosInvalidos() throws Exception {
-        Map<Long, ClienteResponse> clientes = new HashMap<>();
-        Cliente cliente;
+        Map<Long, ClienteRequest> clientes = new HashMap<>();
+        ClienteRequest clienteRequest;
 
-        // Valid id and invalid data
-        cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1");
-        cliente.setRazaoSocial("");
-        clientes.put(1L, clienteMapper.toResponse(cliente));
-        cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 2");
-        cliente.getEnderecos().clear();
-        clientes.put(2L, clienteMapper.toResponse(cliente));
+        // Id válido e dados inválidos
+        clienteRequest = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco("");
 
-        for (Map.Entry<Long, ClienteResponse> entry : clientes.entrySet()) {
+        clientes.put(1L, clienteRequest);
+        clienteRequest = ClienteDadosTeste.criarClienteRequestDadosValidosSemEndereco("Cliente 2");
+        clientes.put(2L, clienteRequest);
+
+        for (Map.Entry<Long, ClienteRequest> entry : clientes.entrySet()) {
             var contentJson = new ObjectMapper().writeValueAsString(entry.getValue());
             var requestBuilder = MockMvcRequestBuilders.put(API_ID, entry.getKey())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -269,13 +273,13 @@ class ClienteControllerTest {
 
         clientes.clear();
 
-        // Invalid id and valid data
-        cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1");
-        clientes.put(0L, clienteMapper.toResponse(cliente));
-        cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 2");
-        clientes.put(-1L, clienteMapper.toResponse(cliente));
+        // Id inválido e dados válidos
+        clienteRequest = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco("Cliente 1");
+        clientes.put(0L, clienteRequest);
+        clienteRequest = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco("Cliente 2");
+        clientes.put(-1L, clienteRequest);
 
-        for (Map.Entry<Long, ClienteResponse> entry : clientes.entrySet()) {            
+        for (Map.Entry<Long, ClienteRequest> entry : clientes.entrySet()) {            
             var contentJson = new ObjectMapper().writeValueAsString(entry.getValue());
             var requestBuilder = MockMvcRequestBuilders.put(API_ID, entry.getKey())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -325,4 +329,5 @@ class ClienteControllerTest {
                 .andExpect(status().isBadRequest());
         });
     }
+
 }

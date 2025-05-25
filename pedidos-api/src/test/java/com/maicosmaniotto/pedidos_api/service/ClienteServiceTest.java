@@ -33,13 +33,14 @@ import com.maicosmaniotto.pedidos_api.dto.PageDTO;
 import com.maicosmaniotto.pedidos_api.dto.mapper.ClienteMapper;
 import com.maicosmaniotto.pedidos_api.exception.RegistroNaoEncontradoException;
 import com.maicosmaniotto.pedidos_api.model.Cliente;
+import com.maicosmaniotto.pedidos_api.model.Municipio;
 import com.maicosmaniotto.pedidos_api.repository.ClienteRepository;
 
 import jakarta.validation.ConstraintViolationException;
 
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
-class CourseServiceTest {
+class ClienteServiceTest {
 
     @InjectMocks
     private ClienteService clienteService;
@@ -60,7 +61,7 @@ class CourseServiceTest {
     @Test
     @DisplayName("Deve criar um cliente com sucesso quando dados válidos são fornecidos")
     void testeCriar() {
-        ClienteRequest clienteRequest = ClienteDadosTeste.criarClienteRequestValidoComUmEndereco("Cliente 1");
+        ClienteRequest clienteRequest = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco("Cliente 1");
         
         Cliente cliente = clienteMapper.toEntity(clienteRequest);
         cliente.setId(1L);
@@ -77,13 +78,12 @@ class CourseServiceTest {
     @DisplayName("Não deve criar um cliente quando dados inválidos são fornecidos")
     void testeCriarDadosInvalidos() {
         // Cliente sem endereços
-        ClienteRequest clienteRequest = ClienteDadosTeste.criarClienteRequestValidoComUmEndereco("Cliente 1");
-        clienteRequest.enderecos().clear();
+        ClienteRequest clienteRequest = ClienteDadosTeste.criarClienteRequestDadosValidosSemEndereco("Cliente 1");
         assertThrows(ConstraintViolationException.class, () -> clienteService.criar(clienteRequest));
         verifyNoInteractions(clienteRepository);
 
         // Cliente com razão social vazia
-        ClienteRequest clienteRequest2 = ClienteDadosTeste.criarClienteRequestValidoComUmEndereco(null);
+        ClienteRequest clienteRequest2 = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco(null);
         assertThrows(ConstraintViolationException.class, () -> clienteService.criar(clienteRequest2));
         verifyNoInteractions(clienteRepository);
     }    
@@ -91,13 +91,14 @@ class CourseServiceTest {
     @Test
     @DisplayName("Deve atualizar um cliente com sucesso quando dados válidos são fornecidos")
     void testeAtualizar() {
-        Cliente antigoCliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente antigo");
-        Cliente novoCliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente novo");
+        Municipio municipio = ClienteDadosTeste.criarMunicipioValido();
+        Cliente antigoCliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente antigo", municipio);
+        Cliente novoCliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente novo", municipio);
 
         when(clienteRepository.findById(anyLong())).thenReturn(Optional.of(antigoCliente));
         when(clienteRepository.save(any(Cliente.class))).thenReturn(novoCliente);
 
-        ClienteRequest novoClienteRequest = ClienteDadosTeste.criarClienteRequestValidoComUmEndereco("Cliente novo");
+        ClienteRequest novoClienteRequest = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco("Cliente novo");
 
         ClienteResponse clienteAtualizado = clienteService.atualizar(1L, novoClienteRequest);
         assertEquals(clienteMapper.toResponse(novoCliente), clienteAtualizado);
@@ -108,7 +109,7 @@ class CourseServiceTest {
     @Test
     @DisplayName("Deve lançar RegistroNaoEncontradoException ao tentar atualizar um cliente que não existe")
     void testeAtualizarNaoEncontrado() {
-        ClienteRequest clienteValidoRequest = ClienteDadosTeste.criarClienteRequestValidoComUmEndereco("Cliente novo");
+        ClienteRequest clienteValidoRequest = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco("Cliente novo");
 
         when(clienteRepository.findById(123L)).thenReturn(Optional.empty());
 
@@ -119,11 +120,10 @@ class CourseServiceTest {
     @Test
     @DisplayName("Deve lançar ConstraintViolationException ao tentar atualizar um cliente com dados inválidos")
     void testeAtualizarDadosInvalidos() {
-        ClienteRequest clienteRequestValido = ClienteDadosTeste.criarClienteRequestValidoComUmEndereco("Cliente novo");
-        ClienteRequest clienteRequestInvalido1 = ClienteDadosTeste.criarClienteRequestValidoComUmEndereco("");
+        ClienteRequest clienteRequestValido = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco("Cliente novo");
+        ClienteRequest clienteRequestInvalido1 = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco("");
 
-        ClienteRequest clienteRequestInvalido2 = ClienteDadosTeste.criarClienteRequestValidoComUmEndereco("Cliente sem endereços");
-        clienteRequestInvalido2.enderecos().clear();
+        ClienteRequest clienteRequestInvalido2 = ClienteDadosTeste.criarClienteRequestDadosValidosSemEndereco("Cliente sem endereços");
 
         // Id inválido e dados válidos
         assertThrows(ConstraintViolationException.class, () -> clienteService.atualizar(-1L, clienteRequestValido));
@@ -137,7 +137,8 @@ class CourseServiceTest {
     @Test
     @DisplayName("Deve excluir um cliente com sucesso")
     void testeExcluir() {
-        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1");
+        Municipio municipio = ClienteDadosTeste.criarMunicipioValido();
+        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1", municipio);
         when(clienteRepository.findById(anyLong())).thenReturn(Optional.of(cliente));
         clienteService.excluir(1L);
         verify(clienteRepository).delete(any(Cliente.class));
@@ -162,7 +163,7 @@ class CourseServiceTest {
     @Test
     @DisplayName("Deve retornar um cliente por id")
     void testeBuscarPorId() {
-        ClienteRequest clienteRequest = ClienteDadosTeste.criarClienteRequestValidoComUmEndereco("Cliente");
+        ClienteRequest clienteRequest = ClienteDadosTeste.criarClienteRequestDadosValidosComUmEndereco("Cliente");
         Cliente cliente = clienteMapper.toEntity(clienteRequest);
         cliente.setId(1L);
         ClienteResponse clienteResponseEsperado = clienteMapper.toResponse(cliente);
@@ -192,8 +193,9 @@ class CourseServiceTest {
     @Test
     @DisplayName("Deve retornar uma página de clientes com apenas um cliente e dois endereços")
     void testeListar() {
-        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente");
-        ClienteDadosTeste.inserirEndereco(cliente, "Ruas 2", "1234");
+        Municipio municipio = ClienteDadosTeste.criarMunicipioValido();
+        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente", municipio);
+        ClienteDadosTeste.inserirEndereco(cliente, "Ruas 2", "1234", municipio);
         
         int pageNumber = 0;
         int pageSize = 50;

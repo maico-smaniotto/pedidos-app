@@ -7,8 +7,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import com.maicosmaniotto.pedidos_api.dto.UsuarioAuthentication;
-import com.maicosmaniotto.pedidos_api.dto.UsuarioRegister;
+import com.maicosmaniotto.pedidos_api.dto.UsuarioAuthenticationRequest;
+import com.maicosmaniotto.pedidos_api.dto.UsuarioRegisterRequest;
 import com.maicosmaniotto.pedidos_api.exception.UsuarioJaExisteException;
 import com.maicosmaniotto.pedidos_api.model.Usuario;
 
@@ -24,24 +24,24 @@ public class UsuarioAuthenticationService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    public void authenticate(UsuarioAuthentication userAuthenticationDTO) {
+    public void autenticar(UsuarioAuthenticationRequest usuarioAuthenticationRequest) {
      
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
-                userAuthenticationDTO.username(),
-                userAuthenticationDTO.password()
+                usuarioAuthenticationRequest.username(),
+                usuarioAuthenticationRequest.password()
             )
         );
     }
 
-    public void register(UsuarioRegister userRegisterDTO) {
-        var user = usuarioRepository.findByUsername(userRegisterDTO.username());
-        if (user != null) {
-            throw new UsuarioJaExisteException(userRegisterDTO.username());
+    public void registrar(UsuarioRegisterRequest usuarioRegisterRequest) {
+        var usuario = usuarioRepository.findByUsername(usuarioRegisterRequest.username());
+        if (usuario != null) {
+            throw new UsuarioJaExisteException(usuarioRegisterRequest.username());
         }
 
-        String encryptedPassword = new BCryptPasswordEncoder().encode(userRegisterDTO.password());
-        Usuario newUser = new Usuario(userRegisterDTO.username(), encryptedPassword, userRegisterDTO.role());
-        usuarioRepository.save(newUser);
+        String senhaEncriptada = new BCryptPasswordEncoder().encode(usuarioRegisterRequest.password());
+        Usuario novoUsuario = new Usuario(usuarioRegisterRequest.username(), senhaEncriptada, usuarioRegisterRequest.role());
+        usuarioRepository.save(novoUsuario);
     }
 }

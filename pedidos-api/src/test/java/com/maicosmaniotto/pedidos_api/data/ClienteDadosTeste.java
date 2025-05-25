@@ -13,26 +13,31 @@ import com.maicosmaniotto.pedidos_api.model.Municipio;
 
 public class ClienteDadosTeste {
     
-    public static Cliente criarClienteValidoComUmEndereco(String razaoSocial) {
+    public static Cliente criarClienteValidoComUmEndereco(String razaoSocial, Municipio municipio) {
         Cliente cliente = new Cliente();
-        cliente.setRazaoSocial(razaoSocial);
         cliente.setTipoPessoa(TipoPessoa.FISICA);
-        inserirEndereco(cliente, "Rua Fulado", "123");
+        cliente.setCpfCnpj("12345678901");
+        cliente.setRazaoSocial(razaoSocial);
+        cliente.setNomeFantasia("Cliente Fantasia");
+        cliente.setEmail("cliente1@example.com");
+        cliente.setStatusRegistro(StatusRegistro.ATIVO);
+
+        inserirEndereco(cliente, "Rua Fulano", "123", municipio);
         return cliente;
     }
 
-    public static ClienteRequest criarClienteRequestValidoComUmEndereco(String razaoSocial) {
+    public static ClienteRequest criarClienteRequestDadosValidosComUmEndereco(String razaoSocial) {
         return new ClienteRequest(
-            TipoPessoa.FISICA.getValor().toString(),
+            TipoPessoa.FISICA.toString(),
             "12345678901",
             razaoSocial,
-            "Cliente 1",
+            "Cliente Fantasia",
             "cliente1@example.com",
             StatusRegistro.ATIVO.toString(),
             List.of(
                 new ClienteEnderecoDTO(
                     null,
-                    "Rua Fulado",
+                    "Rua Fulano",
                     "123",
                     "Complemento",
                     "Bairro",
@@ -46,23 +51,35 @@ public class ClienteDadosTeste {
         );
     }
 
-    public static void inserirEndereco(Cliente cliente, String logradouro, String numero) {
+    public static ClienteRequest criarClienteRequestDadosValidosSemEndereco(String razaoSocial) {
+        return new ClienteRequest(
+            TipoPessoa.FISICA.toString(),
+            "12345678901",
+            razaoSocial,
+            "Cliente Fantasia",
+            "cliente1@example.com",
+            StatusRegistro.ATIVO.toString(),
+            List.of()
+        );
+    }
+
+    public static void inserirEndereco(Cliente cliente, String logradouro, String numero, Municipio municipio) {
         ClienteEndereco endereco = new ClienteEndereco();        
         endereco.setLogradouro(logradouro);
         endereco.setNumero(numero);
         endereco.setComplemento("Complemento");
         endereco.setBairro("Bairro");
         endereco.setCodigoPostal("12345678");
-        endereco.setMunicipio(criarMunicipioValido());
+        endereco.setMunicipio(municipio);
         endereco.setCliente(cliente);
         cliente.getEnderecos().add(endereco);
     }
 
     public static Municipio criarMunicipioValido() {
         return new Municipio(
-            1L, 
+            null, 
             "São Paulo", 
-            "1234567", // Código IBGE fictício
+            "1234567",
             UnidadeFederativa.SP
         );
     }

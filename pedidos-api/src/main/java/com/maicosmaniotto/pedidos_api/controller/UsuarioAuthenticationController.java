@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.maicosmaniotto.pedidos_api.dto.UsuarioAuthentication;
-import com.maicosmaniotto.pedidos_api.dto.UsuarioRegister;
+import com.maicosmaniotto.pedidos_api.dto.UsuarioAuthenticationRequest;
+import com.maicosmaniotto.pedidos_api.dto.UsuarioRegisterRequest;
 import com.maicosmaniotto.pedidos_api.service.UsuarioAuthenticationService;
 
 import jakarta.validation.Valid;
@@ -18,26 +18,26 @@ import jakarta.validation.Valid;
 public class UsuarioAuthenticationController {
 
     AuthenticationManager authenticationManager;
-    UsuarioAuthenticationService userAuthenticationService;
+    UsuarioAuthenticationService usuarioAuthenticationService;
 
     public UsuarioAuthenticationController(
         AuthenticationManager authenticationManager,
-        UsuarioAuthenticationService userAuthenticationService
+        UsuarioAuthenticationService usuarioAuthenticationService
     ) {
         this.authenticationManager = authenticationManager;
-        this.userAuthenticationService = userAuthenticationService;
+        this.usuarioAuthenticationService = usuarioAuthenticationService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody @Valid UsuarioAuthentication userAuthenticationDTO) {        
-        userAuthenticationService.authenticate(userAuthenticationDTO);              
+    public ResponseEntity<String> login(@RequestBody @Valid UsuarioAuthenticationRequest usuarioAuthenticationRequest) {        
+        usuarioAuthenticationService.autenticar(usuarioAuthenticationRequest);              
         return ResponseEntity.ok("Login realizado com sucesso");        
     }
 
     @PostMapping("registrar")
-    public ResponseEntity<String> register(@RequestBody @Valid UsuarioRegister registerDTO) {
+    public ResponseEntity<String> registrar(@RequestBody @Valid UsuarioRegisterRequest usuarioRegisterRequest) {
         try {
-            userAuthenticationService.register(registerDTO);
+            usuarioAuthenticationService.registrar(usuarioRegisterRequest);
             return ResponseEntity.ok("Usuário registrado com sucesso");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

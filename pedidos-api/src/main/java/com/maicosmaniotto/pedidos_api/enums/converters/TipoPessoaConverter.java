@@ -24,7 +24,7 @@ public class TipoPessoaConverter implements AttributeConverter<TipoPessoa, Chara
             return null;
         }
         return Stream.of(TipoPessoa.values())        
-            .filter(c -> c.getValor() == value)
+            .filter(c -> c.getValor().equals(value))
             .findFirst()
             .orElseThrow(IllegalArgumentException::new);
     }

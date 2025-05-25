@@ -15,9 +15,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.maicosmaniotto.pedidos_api.data.ClienteDadosTeste;
-import com.maicosmaniotto.pedidos_api.enums.StatusRegistro;
 import com.maicosmaniotto.pedidos_api.enums.TipoPessoa;
 import com.maicosmaniotto.pedidos_api.model.Cliente;
+import com.maicosmaniotto.pedidos_api.model.Municipio;
 
 @ActiveProfiles("test")
 @DataJpaTest
@@ -32,22 +32,20 @@ class ClienteRepositoryTest {
     @Test
     @DisplayName("Deve listar clientes com endereços")
     void testFindAll() {
-        
+
+        Municipio municipio = entityManager.persist(ClienteDadosTeste.criarMunicipioValido());
+
         Cliente cliente;
-        cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Maico Smaniotto");
-        cliente.setNomeFantasia("Maico Smaniotto");
-        cliente.setEmail("maico@teste.com");
-        cliente.setCpfCnpj("12345678901");
+        cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Maico Smaniotto", municipio);
         cliente.setTipoPessoa(TipoPessoa.FISICA);
-        cliente.setStatusRegistro(StatusRegistro.ATIVO);
+        cliente.setCpfCnpj("12345678901");
+        cliente.setNomeFantasia("Maico Smaniotto");
         entityManager.persist(cliente);
 
-        cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("SmaniSoft Tecnologia");        
-        cliente.setNomeFantasia("SmaniSoft");
-        cliente.setEmail("smani@teste.com");
-        cliente.setCpfCnpj("12345678901");
+        cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("SmaniSoft Tecnologia", municipio);        
         cliente.setTipoPessoa(TipoPessoa.JURIDICA);
-        cliente.setStatusRegistro(StatusRegistro.ATIVO);
+        cliente.setCpfCnpj("12345678901");
+        cliente.setNomeFantasia("SmaniSoft");
         entityManager.persist(cliente);
 
         Page<Cliente> clientePage = clienteRepository.findAll(PageRequest.of(0, 10));
@@ -66,19 +64,23 @@ class ClienteRepositoryTest {
     @Test
     @DisplayName("Deve buscar cliente por Id")
     void testFindById() {
-        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1");
+        Municipio municipio = entityManager.persist(ClienteDadosTeste.criarMunicipioValido());
+        
+        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1", municipio);
         Cliente clienteSalvo = entityManager.persist(cliente);
 
         Optional<Cliente> clienteEncontrado = clienteRepository.findById(clienteSalvo.getId());
 
         assertTrue(clienteEncontrado.isPresent());
-        assertThat(clienteEncontrado.get()).isEqualTo(clienteSalvo);
+        assertThat(clienteEncontrado).contains(clienteSalvo);
     }
 
     @Test
     @DisplayName("Deve salvar um cliente")
     void testSave() {
-        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1");
+        Municipio municipio = entityManager.persist(ClienteDadosTeste.criarMunicipioValido());
+        
+        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1", municipio);
         Cliente clienteSalvo = clienteRepository.save(cliente);
 
         assertThat(clienteSalvo).isNotNull();
@@ -89,7 +91,9 @@ class ClienteRepositoryTest {
     @Test
     @DisplayName("Deve atualizar um cliente")
     void testUpdate() {
-        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1");
+        Municipio municipio = entityManager.persist(ClienteDadosTeste.criarMunicipioValido());
+        
+        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1", municipio);
         Cliente clienteSalvo = entityManager.persist(cliente);
 
         clienteSalvo.setRazaoSocial("New Name");
@@ -103,7 +107,9 @@ class ClienteRepositoryTest {
     @Test
     @DisplayName("Deve excluir um cliente")
     void testDelete() {
-        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1");
+        Municipio municipio = entityManager.persist(ClienteDadosTeste.criarMunicipioValido());
+        
+        Cliente cliente = ClienteDadosTeste.criarClienteValidoComUmEndereco("Cliente 1", municipio);
         Cliente clienteSalvo = entityManager.persist(cliente);
 
         clienteRepository.delete(clienteSalvo);
